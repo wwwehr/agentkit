@@ -1,7 +1,6 @@
 from cdp import Wallet
 from cdp_agentkit_core.actions import CdpAction
 
-from collections import defaultdict
 from collections.abc import Callable
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
@@ -9,7 +8,7 @@ import requests
 import uuid
 
 
-from typing import Union, Dict, List, Optional, Type
+from typing import Union, Dict, List, Optional
 
 from cdp_agentkit_core.actions.nillion.constants import (
     CONFIG
@@ -145,5 +144,5 @@ def nillion_create_schema(wallet: Wallet, schema_description: str) -> dict:
 class NillionCreateSchemaAction(CdpAction):
     name: str = "nillion_create_schema"
     description: str = NILLION_CREATE_SCHEMA_PROMPT
-    args_schema: Type[BaseModel] = NillionCreateSchemaInput
+    args_schema: type[BaseModel] = NillionCreateSchemaInput
     func: Callable[..., str] = nillion_create_schema

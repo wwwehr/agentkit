@@ -40,3 +40,32 @@ def init() -> bool:
     )
 
     return True
+
+def fetch_schemas() -> list:
+    """Get all my schemas from the first server."""
+    headers = {
+        "Authorization": f'Bearer {CONFIG["nodes"][0]["bearer"]}',
+        "Content-Type": "application/json",
+    }
+
+    response = requests.get(
+        f"{CONFIG['nodes'][0]['url']}/api/v1/schemas", headers=headers
+    )
+
+    assert (
+        response.status_code == 200 and response.json().get("errors", []) == []
+    ), response.content.decode("utf8")
+
+    schema_list = response.json()["data"]
+    assert len(schema_list) > 0, "failed to fetch schemas from nildb"
+    return schema_list
+
+def filter_schemas(schema_uuid: str, schema_list: list) -> dict:
+    """Filter a list of schemas by single desired schema id."""
+    my_schema = None
+    for this_schema in schema_list:
+        if this_schema["_id"] == schema_uuid:
+            my_schema = this_schema["schema"]
+            break
+    assert my_schema is not None, "failed to lookup schema"
+    return my_schema
