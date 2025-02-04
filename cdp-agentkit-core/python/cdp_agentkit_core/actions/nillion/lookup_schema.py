@@ -20,8 +20,6 @@ Special consideration:
 """
 
 
-
-
 class NillionLookupSchemaInput(BaseModel):
     """Input argument schema for lookup schema action."""
 
@@ -66,8 +64,9 @@ def nillion_lookup_schema(wallet: Wallet, schema_description: str) -> tuple:
         return None
 
 
-
 class NillionLookupSchemaAction(CdpAction):
+    """Nillion Lookup Schema Action."""
+
     name: str = "nillion_lookup_schema"
     description: str = NILLION_LOOKUP_SCHEMA_PROMPT
     args_schema: type[BaseModel] = NillionLookupSchemaInput

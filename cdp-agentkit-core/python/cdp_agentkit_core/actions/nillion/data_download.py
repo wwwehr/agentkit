@@ -20,6 +20,7 @@ Inputs:
 - a UUID4 that identifies the schema to be read from
 """
 
+
 class NillionDataDownloadInput(BaseModel):
     """Input argument schema for data download action."""
 
@@ -66,6 +67,8 @@ def nillion_data_download(wallet: Wallet, schema_id: str) -> dict:
 
 
 class NillionDataDownloadAction(CdpAction):
+    """Nillion Data Download Action."""
+
     name: str = "nillion_data_download"
     description: str = NILLION_DATA_DOWNLOAD_PROMPT
     args_schema: type[BaseModel] = NillionDataDownloadInput

@@ -10,9 +10,7 @@ import uuid
 
 from typing import Union, Dict, List, Optional
 
-from cdp_agentkit_core.actions.nillion.constants import (
-    CONFIG
-)
+from cdp_agentkit_core.actions.nillion.constants import CONFIG
 from cdp_agentkit_core.actions.nillion.utils import init
 
 NILLION_CREATE_SCHEMA_PROMPT = """
@@ -30,6 +28,7 @@ class NillionCreateSchemaInput(BaseModel):
     schema_description: str = Field(
         ..., description="a complete description of the desired nildb schema"
     )
+
 
 def nillion_create_schema(wallet: Wallet, schema_description: str) -> dict:
     """Create a JSON schema based on input description and uploads it to nildb."""
@@ -131,8 +130,7 @@ def nillion_create_schema(wallet: Wallet, schema_description: str) -> dict:
             )
 
             assert (
-                response.status_code == 200
-                and response.json().get("errors", []) == []
+                response.status_code == 200 and response.json().get("errors", []) == []
             ), response.content.decode("utf8")
         return schema
     except Exception as e:
@@ -140,8 +138,9 @@ def nillion_create_schema(wallet: Wallet, schema_description: str) -> dict:
         return ""
 
 
-
 class NillionCreateSchemaAction(CdpAction):
+    """Nillion Create Schema Action."""
+
     name: str = "nillion_create_schema"
     description: str = NILLION_CREATE_SCHEMA_PROMPT
     args_schema: type[BaseModel] = NillionCreateSchemaInput
