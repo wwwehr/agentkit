@@ -4,17 +4,17 @@ from cdp_agentkit_core.actions import CdpAction
 from collections.abc import Callable
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
+import json
 import requests
 import uuid
 
 
 from typing import Union, Dict, List, Optional
 
-from cdp_agentkit_core.actions.nillion.constants import CONFIG
-from cdp_agentkit_core.actions.nillion.utils import init
+from cdp_agentkit_core.actions.nillion.utils import init, get_nodes, get_org_id
 
 NILLION_CREATE_SCHEMA_PROMPT = """
-This tool can be used to create schemas in your privacy preserving database based on a natural language description. Do not use this tool for any other purpose.
+This tool can be used to create schemas in your privacy preserving database, called the Nillion SecretVault (or nildb), based on a natural language description. Do not use this tool for any other purpose.
 
 Inputs:
 - a complete description of the desired nildb schema
@@ -32,7 +32,7 @@ class NillionCreateSchemaInput(BaseModel):
 
 def nillion_create_schema(wallet: Wallet, schema_description: str) -> dict:
     """Create a JSON schema based on input description and uploads it to nildb."""
-    print(f"fn:create_schema [{schema_description}]")
+    # print(f"fn:create_schema [{schema_description}]")
 
     try:
 
@@ -81,7 +81,7 @@ def nillion_create_schema(wallet: Wallet, schema_description: str) -> dict:
         {{
           "name": "My services",
           "keys": ["_id"],
-          "schema": []{{
+          "schema": {{
             "$schema": "http://json-schema.org/draft-07/schema#",
             "type": "array",
             "items": {{
@@ -115,9 +115,9 @@ def nillion_create_schema(wallet: Wallet, schema_description: str) -> dict:
         schema = json.loads(response.content)
 
         schema["_id"] = str(uuid.uuid4())
-        schema["owner"] = CONFIG["org_did"]
+        schema["owner"] = get_org_id()
 
-        for node in self.nodes:
+        for node in get_nodes():
             headers = {
                 "Authorization": f'Bearer {node["bearer"]}',
                 "Content-Type": "application/json",

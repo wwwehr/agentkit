@@ -10,7 +10,7 @@ import json
 from cdp_agentkit_core.actions.nillion.utils import init, fetch_schemas, filter_schemas
 
 NILLION_LOOKUP_SCHEMA_PROMPT = """
-This tool can lookup schemas in your privacy preserving database based on a natural language descripotion. Do not use this tool for other purposes.
+This tool can lookup schemas in your privacy preserving database, called the Nillion SecretVault (or nildb), based on a natural language description. Do not use this tool for other purposes.
 
 Inputs:
 - a complete description of the desired nildb schema
@@ -30,7 +30,7 @@ class NillionLookupSchemaInput(BaseModel):
 
 def nillion_lookup_schema(wallet: Wallet, schema_description: str) -> tuple:
     """Lookup a JSON schema based on input description and return it's UUID."""
-    print(f"fn:lookup_schema [{schema_description}]")
+    # print(f"fn:lookup_schema [{schema_description}]")
     try:
 
         init()

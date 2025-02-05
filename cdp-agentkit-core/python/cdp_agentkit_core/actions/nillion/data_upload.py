@@ -1,5 +1,6 @@
 from cdp import Wallet
 from cdp_agentkit_core.actions import CdpAction
+import uuid
 
 from jsonschema import validators, Draft7Validator
 
@@ -8,13 +9,18 @@ from collections.abc import Callable
 from pydantic import BaseModel, Field
 import requests
 
-from cdp_agentkit_core.actions.nillion.constants import CONFIG
-from cdp_agentkit_core.actions.nillion.utils import init, fetch_schemas, filter_schemas
+from cdp_agentkit_core.actions.nillion.utils import (
+    init,
+    get_cluster_key,
+    get_nodes,
+    fetch_schemas,
+    filter_schemas,
+)
 import nilql
 
 
 NILLION_DATA_UPLOAD_PROMPT = """
-This tool can upload data into your privacy preserving database validating to a schema. Do not use this tool for other purposes.
+This tool can upload data into your privacy preserving database, called the Nillion SecretVault (or nildb), validating to a schema. Do not use this tool for other purposes.
 
 Inputs:
 - a UUID4 that identifies the schema to upload into
@@ -31,9 +37,11 @@ def _mutate_secret_attributes(entry: dict) -> None:
     keys = list(entry.keys())
     for key in keys:
         value = entry[key]
-        if key == "$share":
+        if key == "_id":
+            entry[key] = str(uuid.uuid4())
+        elif key == "$share":
             del entry["$share"]
-            entry["$allot"] = nilql.encrypt(CONFIG["cluster_key"], value)
+            entry["$allot"] = nilql.encrypt(get_cluster_key(), value)
         elif isinstance(value, dict):
             _mutate_secret_attributes(value)
 
@@ -54,9 +62,9 @@ class NillionDataUploadInput(BaseModel):
     )
 
 
-def nillion_data_upload(wallet: Wallet, schema_uuid: str, payload: list) -> bool:
+def nillion_data_upload(wallet: Wallet, schema_uuid: str, data_to_store: list) -> bool:
     """Create/upload records in the specified node and schema."""
-    print(f"fn:data_upload [{schema_uuid}] [{payload}]")
+    # print(f"fn:data_upload [{schema_uuid}] [{data_to_store}]")
     try:
 
         init()
@@ -67,16 +75,17 @@ def nillion_data_upload(wallet: Wallet, schema_uuid: str, payload: list) -> bool
         builder = _validator_builder()
         validator = builder(my_schema)
 
-        for entry in payload:
+        for entry in data_to_store:
             _mutate_secret_attributes(entry)
 
-        payloads = nilql.allot(payload)
+        payloads = nilql.allot(data_to_store)
+        nodes = get_nodes()
 
         for idx, shard in enumerate(payloads):
 
             validator.validate(shard)
 
-            node = CONFIG["nodes"][idx]
+            node = nodes[idx]
             headers = {
                 "Authorization": f'Bearer {node["bearer"]}',
                 "Content-Type": "application/json",

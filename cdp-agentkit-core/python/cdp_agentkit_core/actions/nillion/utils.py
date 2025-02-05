@@ -1,15 +1,33 @@
-from cdp_agentkit_core.actions.nillion.constants import (
-    CONFIG,
-)
 from ecdsa import SigningKey, SECP256k1
 import jwt
 import nilql
+import os
 import requests
 import time
 
 
+CONFIG = {}
+
+
+def get_org_id() -> str:
+    return CONFIG["org_did"]
+
+
+def get_cluster_key() -> dict:
+    return CONFIG["cluster_key"]
+
+
+def get_nodes() -> list:
+    return CONFIG["nodes"]
+
+
 def init() -> bool:
     """Initialize config with JWTs signed with ES256K for multiple node_ids; Add cluster key."""
+    global CONFIG
+    CONFIG = {
+        "secret_key": os.environ["NILLION_SECRET_KEY"],
+        "org_did": os.environ["NILLION_ORG_ID"],
+    }
     response = requests.post(
         "https://sv-sda-registration.replit.app/api/config",
         headers={
@@ -41,6 +59,7 @@ def init() -> bool:
 
     return True
 
+
 def fetch_schemas() -> list:
     """Get all my schemas from the first server."""
     headers = {
@@ -59,6 +78,7 @@ def fetch_schemas() -> list:
     schema_list = response.json()["data"]
     assert len(schema_list) > 0, "failed to fetch schemas from nildb"
     return schema_list
+
 
 def filter_schemas(schema_uuid: str, schema_list: list) -> dict:
     """Filter a list of schemas by single desired schema id."""

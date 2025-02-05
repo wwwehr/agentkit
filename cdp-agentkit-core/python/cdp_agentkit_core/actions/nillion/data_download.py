@@ -9,12 +9,11 @@ from collections import defaultdict
 import requests
 
 import nilql
-from cdp_agentkit_core.actions.nillion.constants import CONFIG
-from cdp_agentkit_core.actions.nillion.utils import init
+from cdp_agentkit_core.actions.nillion.utils import init, get_cluster_key, get_nodes
 
 
 NILLION_DATA_DOWNLOAD_PROMPT = """
-This tool can download data from your privacy preserving database based on a schema UUID4. Do not use this tool for other purposes.
+This tool can download data from your privacy preserving database, called the Nillion SecretVault (or nildb), based on a schema UUID4. Do not use this tool for other purposes.
 
 Inputs:
 - a UUID4 that identifies the schema to be read from
@@ -29,20 +28,20 @@ class NillionDataDownloadInput(BaseModel):
     )
 
 
-def nillion_data_download(wallet: Wallet, schema_id: str) -> dict:
+def nillion_data_download(wallet: Wallet, schema_uuid: str) -> dict:
     """Download all records in the specified node and schema."""
-    print(f"fn:data_download [{schema_id}]")
+    # print(f"fn:data_download [{schema_uuid}]")
     try:
         init()
         shares = defaultdict(list)
-        for node in CONFIG["nodes"]:
+        for node in get_nodes():
             headers = {
                 "Authorization": f'Bearer {node["bearer"]}',
                 "Content-Type": "application/json",
             }
 
             body = {
-                "schema": schema_id,
+                "schema": schema_uuid,
                 "filter": {},
             }
 
@@ -59,7 +58,7 @@ def nillion_data_download(wallet: Wallet, schema_id: str) -> dict:
                 shares[d["_id"]].append(d)
         decrypted = []
         for k in shares:
-            decrypted.append(nilql.unify(CONFIG["cluster_key"], shares[k]))
+            decrypted.append(nilql.unify(get_cluster_key(), shares[k]))
         return decrypted
     except Exception as e:
         print(f"Error retrieving records in node: {e!r}")
