@@ -64,7 +64,7 @@ class NillionDataUploadInput(BaseModel):
 
 def nillion_data_upload(wallet: Wallet, schema_uuid: str, data_to_store: list) -> bool:
     """Create/upload records in the specified node and schema."""
-    # print(f"fn:data_upload [{schema_uuid}] [{data_to_store}]")
+    print(f"fn:data_upload [{schema_uuid}] [{data_to_store}]")
     try:
 
         init()
@@ -102,9 +102,10 @@ def nillion_data_upload(wallet: Wallet, schema_uuid: str, data_to_store: list) -
             assert (
                 response.status_code == 200 and response.json().get("errors", []) == []
             ), "upload failed: " + response.content.decode("utf8")
+        print("fn:data_upload COMPLETED")
         return True
     except Exception as e:
-        print(f"Error creating records in node: {str(e)}")
+        print(f"Error creating records in node: {e!r}")
         return False
 
 

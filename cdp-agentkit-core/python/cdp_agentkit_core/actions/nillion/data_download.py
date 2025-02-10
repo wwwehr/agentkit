@@ -30,7 +30,7 @@ class NillionDataDownloadInput(BaseModel):
 
 def nillion_data_download(wallet: Wallet, schema_uuid: str) -> dict:
     """Download all records in the specified node and schema."""
-    # print(f"fn:data_download [{schema_uuid}]")
+    print(f"fn:data_download [{schema_uuid}]")
     try:
         init()
         shares = defaultdict(list)

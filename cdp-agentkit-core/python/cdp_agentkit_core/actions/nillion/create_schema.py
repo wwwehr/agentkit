@@ -32,7 +32,7 @@ class NillionCreateSchemaInput(BaseModel):
 
 def nillion_create_schema(wallet: Wallet, schema_description: str) -> dict:
     """Create a JSON schema based on input description and uploads it to nildb."""
-    # print(f"fn:create_schema [{schema_description}]")
+    print(f"fn:create_schema [{schema_description}]")
 
     try:
 

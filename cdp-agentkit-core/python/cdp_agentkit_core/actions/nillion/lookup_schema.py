@@ -30,7 +30,7 @@ class NillionLookupSchemaInput(BaseModel):
 
 def nillion_lookup_schema(wallet: Wallet, schema_description: str) -> tuple:
     """Lookup a JSON schema based on input description and return it's UUID."""
-    # print(f"fn:lookup_schema [{schema_description}]")
+    print(f"fn:lookup_schema [{schema_description}]")
     try:
 
         init()
@@ -57,6 +57,7 @@ def nillion_lookup_schema(wallet: Wallet, schema_description: str) -> tuple:
         my_uuid = "".join(c for c in my_uuid if c.lower() in "0123456789abcdef-")
 
         my_schema = filter_schemas(my_uuid, schema_list)
+        print("fn:lookup_schema COMPLETED")
         return my_uuid, my_schema
 
     except Exception as e:
