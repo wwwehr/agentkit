@@ -3,6 +3,7 @@ import sys
 import time
 
 from dotenv import load_dotenv
+import requests
 
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
@@ -18,10 +19,24 @@ wallet_data_file = "wallet_data.txt"
 
 load_dotenv()
 
+def _probe_model_name(llm_host: str) -> str:
+    res = requests.get(f"{llm_host}/models")
+    res.raise_for_status()
+    try:
+        return res.json()["data"][0]["id"]
+    except Exception:
+        print("failed to fetch model name from nilai endpoint")
+        raise
+
 def initialize_agent():
     """Initialize the agent with CDP Agentkit."""
     # Initialize LLM.
-    llm = ChatOpenAI(model="gpt-4o-mini")
+    llm_tools = ChatOpenAI(
+        openai_api_base=os.environ["NILLION_NILAI_TOOLS_HOST"],
+        openai_api_key=os.environ["NILLION_NILAI_KEY"],
+        model_name=_probe_model_name(os.environ["NILLION_NILAI_TOOLS_HOST"])
+    )
+
 
     wallet_data = None
 
@@ -44,7 +59,7 @@ def initialize_agent():
 
     # Initialize CDP Agentkit Toolkit and get tools.
     cdp_toolkit = CdpToolkit.from_cdp_agentkit_wrapper(agentkit)
-    tools = cdp_toolkit.get_tools()
+    tools = [x for x in cdp_toolkit.get_tools() if x.name.startswith("nillion")]
 
     # Store buffered conversation history in memory.
     memory = MemorySaver()
@@ -52,7 +67,7 @@ def initialize_agent():
 
     # Create ReAct Agent using the LLM and CDP Agentkit tools.
     return create_react_agent(
-        llm,
+        llm_tools,
         tools=tools,
         checkpointer=memory,
         state_modifier=(
@@ -90,8 +105,11 @@ def main():
     agent_executor, config = initialize_agent()
 
     TASK = """
-    Create a basic schema in the SecretVault so that I can track patient name, doctor name and medical diagnosis,
-    and a reasoning summary. All of these fields should be secret. Call the schema `Medical Diagnostic Report`
+    You are pulling all Medical Diagnostic Reports from your SecretVault.
+
+    First, you should lookup the schema to use, and then get all the data from
+    the schema. If you do not find an existing schema, do not create one, just 
+    stop. Tell me your thoughts afterwards.
     """
 
     run_autonomous_mode(agent_executor=agent_executor, config=config, task=TASK)
