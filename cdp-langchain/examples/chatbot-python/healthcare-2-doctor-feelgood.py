@@ -147,10 +147,10 @@ def main(case_file_path: str) -> bool:
     agent_executor, llm_reasoning, config = initialize_agent()
     res = llm_reasoning.invoke(REASONING_TASK)
 
-    doctor_name = _probe_model_name(os.environ["NILLION_NILAI_TOOLS_HOST"])
+    doctor_name = _probe_model_name(os.environ["NILLION_NILAI_REASONING_HOST"])
     TOOLS_TASK = f"""
-    You are a doctor named {doctor_name} and you have formed an opinion and 
-    suggested a diagnosis. This is your DIAGNOSTIC REPORT. Your report is found below.
+    You are a doctor named {doctor_name} and you have already formed an opinion and 
+    formed a diagnosis. This is your DIAGNOSTIC REPORT and this report is found below.
 
     You must upload your DIAGNOSTIC REPORT into the database using an existing schema that 
     is in the Nillion SecretVault. 
@@ -162,8 +162,8 @@ def main(case_file_path: str) -> bool:
     3. IMPORTANT: If you do not find an existing schema, do not create one, just stop.
     4. If you find a schema, you will use it's identifier, a UUID4, and your DIAGNOSTIC
        REPORT to upload to the database.
-
-    Tell me your DIAGNOSTIC REPORT afterwards.
+    5. Your job is to upload the DIAGNOSTIC REPORT and you need to kep trying until 
+       it is successful.
 
     YOUR DIAGNOSTIC REPORT IS:
     {res.content}
