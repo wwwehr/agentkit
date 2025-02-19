@@ -29,7 +29,7 @@ def init() -> bool:
         "org_did": os.environ["NILLION_ORG_ID"],
     }
     response = requests.post(
-        "https://sv-sda-registration.replit.app/api/config",
+        "https://secret-vault-registration.replit.app/api/config",
         headers={
             "Content-Type": "application/json",
         },

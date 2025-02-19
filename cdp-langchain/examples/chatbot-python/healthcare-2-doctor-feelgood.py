@@ -1,4 +1,3 @@
-from pdb import set_trace as bp
 import argparse
 import os
 import json
@@ -39,6 +38,7 @@ wallet_data_file = "wallet_data.txt"
 
 load_dotenv()
 
+
 def _probe_model_name(llm_host: str) -> str:
     res = requests.get(f"{llm_host}/models")
     res.raise_for_status()
@@ -48,20 +48,20 @@ def _probe_model_name(llm_host: str) -> str:
         print("failed to fetch model name from nilai endpoint")
         raise
 
+
 def initialize_agent():
     """Initialize the agent with CDP Agentkit."""
-
 
     llm_reasoning = ChatOpenAI(
         openai_api_base=os.environ["NILLION_NILAI_REASONING_HOST"],
         openai_api_key=os.environ["NILLION_NILAI_KEY"],
-        model_name=_probe_model_name(os.environ["NILLION_NILAI_REASONING_HOST"])
+        model_name=_probe_model_name(os.environ["NILLION_NILAI_REASONING_HOST"]),
     )
 
     llm_tools = ChatOpenAI(
         openai_api_base=os.environ["NILLION_NILAI_TOOLS_HOST"],
         openai_api_key=os.environ["NILLION_NILAI_KEY"],
-        model_name=_probe_model_name(os.environ["NILLION_NILAI_TOOLS_HOST"])
+        model_name=_probe_model_name(os.environ["NILLION_NILAI_TOOLS_HOST"]),
     )
 
     wallet_data = None
@@ -141,22 +141,31 @@ def main(case_file_path: str) -> bool:
     CHART:
     {json.dumps(data['CHART'])}
 
-    Form an opinion and suggest a diagnosis. Describe your reasoning in detail.
+    Form an opinion and suggest a diagnosis. Summarize your reasoning.
     """
 
     agent_executor, llm_reasoning, config = initialize_agent()
     res = llm_reasoning.invoke(REASONING_TASK)
 
+    doctor_name = _probe_model_name(os.environ["NILLION_NILAI_TOOLS_HOST"])
     TOOLS_TASK = f"""
-    You are a doctor and you have formed an opinion and suggested a diagnosis. 
-    This is your reasoning report. Your report is found below.
+    You are a doctor named {doctor_name} and you have formed an opinion and 
+    suggested a diagnosis. This is your DIAGNOSTIC REPORT. Your report is found below.
 
-    You must save your opinion into existing schema that is in the SecretVault. 
-    First, you should lookup the schema to use, and then transform your findings 
-    to match the available fields in the schema. If you do not find an existing 
-    schema, do not create one, just stop. Tell me your thoughts afterwards.
+    You must upload your DIAGNOSTIC REPORT into the database using an existing schema that 
+    is in the Nillion SecretVault. 
 
-    YOUR DIAGNOSIS IS:
+    STEPS:
+    1. you must lookup the schema to use using the nillion_lookup_schema tool to
+       find the `Medical Diagnostic Report` database.
+    2. transform your DIAGNOSTIC REPORT to match the available fields in the schema.
+    3. IMPORTANT: If you do not find an existing schema, do not create one, just stop.
+    4. If you find a schema, you will use it's identifier, a UUID4, and your DIAGNOSTIC
+       REPORT to upload to the database.
+
+    Tell me your DIAGNOSTIC REPORT afterwards.
+
+    YOUR DIAGNOSTIC REPORT IS:
     {res.content}
     """
     print("Agent is informed of task.")

@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import requests
 
 from dotenv import load_dotenv
 
@@ -18,10 +19,23 @@ wallet_data_file = "wallet_data.txt"
 
 load_dotenv()
 
+def _probe_model_name(llm_host: str) -> str:
+    res = requests.get(f"{llm_host}/models")
+    res.raise_for_status()
+    try:
+        return res.json()["data"][0]["id"]
+    except Exception:
+        print("failed to fetch model name from nilai endpoint")
+        raise
+
 def initialize_agent():
     """Initialize the agent with CDP Agentkit."""
     # Initialize LLM.
-    llm = ChatOpenAI(model="gpt-4o-mini")
+    llm = ChatOpenAI(
+        openai_api_base=os.environ["NILLION_NILAI_TOOLS_HOST"],
+        openai_api_key=os.environ["NILLION_NILAI_KEY"],
+        model_name=_probe_model_name(os.environ["NILLION_NILAI_TOOLS_HOST"])
+    )
 
     wallet_data = None
 

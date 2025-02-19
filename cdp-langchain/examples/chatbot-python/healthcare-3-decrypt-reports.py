@@ -1,3 +1,4 @@
+from pdb import set_trace as bp
 import os
 import sys
 import time
@@ -105,7 +106,8 @@ def main():
     agent_executor, config = initialize_agent()
 
     TASK = """
-    You are pulling all Medical Diagnostic Reports from your SecretVault.
+    You are pulling all records in the `Medical Diagnostic Reports` schema
+    from your SecretVault.
 
     First, you should lookup the schema to use, and then get all the data from
     the schema. If you do not find an existing schema, do not create one, just 
